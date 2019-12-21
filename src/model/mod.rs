@@ -27,4 +27,4 @@ pub trait Encoder {
   fn write(&self, image: &RasterImage, file: &mut File) -> Result<u64, FylmError>;
 }
 
-pub mod gif;
+pub mod parser;
