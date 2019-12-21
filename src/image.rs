@@ -1,38 +1,78 @@
+/// Simple RGB color model with alpha channel. Each field indicates the strength of the
+/// corresponding color channel in range 0-255. An alpha channel of 255 means complete opacity.
 #[derive(Debug)]
-pub struct Size {
+pub struct Color {
+  pub alpha: u8,
+  pub red: u8,
+  pub green: u8,
+  pub blue: u8,
+}
+
+impl Color {
+  /// Create a new ARGB color.
+  pub fn new(r: u8, g: u8, b: u8, a: u8) -> Color {
+    Color { alpha: 255, red: r, green: g, blue: b }
+  }
+  /// Create a new RGB color as α=255.
+  pub fn new_opaque(r: u8, g: u8, b: u8) -> Color {
+    Color::new(r, g, b, 255)
+  }
+  /// Create a new RGB color from the specified integer that represents ARGB.
+  pub fn new_from_argb(argb: u32) -> Color {
+    Color::new((argb >> 24) as u8, (argb >> 16) as u8, (argb >> 8) as u8, (argb >> 0) as u8)
+  }
+  /// Transform to 32-bit ARGB integer.
+  pub fn to_argb(&self) -> u32 {
+    ((self.alpha as u32 & 0xFF) << 24)
+        | ((self.red as u32 & 0xFF) << 16)
+        | ((self.green as u32 & 0xFF) << 8)
+        | ((self.blue as u32 & 0xFF) << 0)
+  }
+}
+
+impl ToString for Color {
+  fn to_string(&self) -> String {
+    if self.alpha == 0xFF {
+      format!("#{:02X}{:02X}{:02X}", self.red, self.green, self.blue)
+    } else {
+      format!("#{:02X}{:02X}{:02X}{:02X}", self.alpha, self.red, self.green, self.blue)
+    }
+  }
+}
+
+#[derive(Debug)]
+pub struct Dimension2D {
   width: u32,
   height: u32,
 }
 
-pub trait Image {
-  fn size(&self) -> &Size;
+#[derive(Debug)]
+pub struct RasterImage {
+  size: Dimension2D,
+  raster: Vec<Vec<u32>>,
 }
 
 pub trait Screen {
-  fn size(&self) -> &Size;
+  fn size(&self) -> Dimension2D;
+  fn raster_image(&self) -> *const RasterImage;
 }
 
 #[derive(Debug)]
-pub struct RasterImage {
-  size: Size,
-}
-
-#[delive(Debug)]
 pub struct Story {}
 
-#[delive(Debug)]
+#[derive(Debug)]
 pub struct Scene {}
 
-#[delive(Debug)]
+#[derive(Debug)]
 pub struct Shot {
-  frames: Vec<Frame>
+  frames: *const Vec<Frame>,
 }
 
-#[delive(Debug)]
+#[derive(Debug)]
 pub struct Frame {
-  size: Size
+  screen: *const dyn Screen,
 }
 
 impl Screen for Frame {
-  fn size(&self) -> &Size { &self.size }
+  fn size(&self) -> Dimension2D { (*self.image).size() }
 }
