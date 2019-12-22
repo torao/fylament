@@ -1,7 +1,7 @@
 use std::fs::File;
 
 use super::error::FylmError;
-use super::image::Image;
+use super::image::RasterImage;
 
 pub trait Codec {
   fn new_decoder(&self) -> &dyn Decoder;
@@ -10,21 +10,21 @@ pub trait Codec {
 
 pub trait Decoder {
   /// Read image from specified file.
-  fn read_from_file(&self, file_name: &String) -> Result<&dyn Image, FylmError> {
+  fn read_from_file(&self, file_name: &String) -> Result<&dyn RasterImage, FylmError> {
     let mut file = File::open(file_name)?;
     self.read(&mut file)
   }
 
   /// Read image from specified file.
-  fn read(&self, file: &mut File) -> Result<&dyn Image, FylmError>;
+  fn read(&self, file: &mut File) -> Result<&dyn RasterImage, FylmError>;
 }
 
 pub trait Encoder {
-  fn write_to_file(&self, image: &dyn Image, file_name: &String) -> Result<u64, FylmError> {
+  fn write_to_file(&self, image: &dyn RasterImage, file_name: &String) -> Result<u64, FylmError> {
     let mut file = File::open(file_name)?;
     self.write(image, &mut file)
   }
-  fn write(&self, image: &dyn Image, file: &mut File) -> Result<u64, FylmError>;
+  fn write(&self, image: &dyn RasterImage, file: &mut File) -> Result<u64, FylmError>;
 }
 
 pub mod gif;
