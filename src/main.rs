@@ -43,22 +43,29 @@ fn inspect(file_name: String) -> Result<(), io::Error> {
   println!("Logical Screen Size: {}x{} pixel", decoder.width(), decoder.height());
   match decoder.global_palette() {
     Some(palette) => {
-      print!("Global Color Table: [)");
+      print!("Global Color Table : [");
       for i in 0..palette.len()/3-1 {
-        print!("#{:02x}{:02x}{:02x}", palette[i], palette[i+1], palette[i+2]);
+        if i != 0 {
+          print!(",");
+        }
+        print!("#{:02X}{:02X}{:02X}", palette[i], palette[i+1], palette[i+2]);
       }
       println!("] ({} bytes)", palette.len());
     }
     None => ()
   }
+  println!("Background Color   : {}", decoder.bg_color().map_or("---".to_string(), |x| x.to_string()));
 
+  let mut i = 0;
   while let Some(frame) = decoder.read_next_frame().unwrap() {
-    println!("  Base Point     : ({},{})", frame.left, frame.top);
-    println!("  Size           : {}×{} pixel", frame.width, frame.height);
-    println!("  Delay          : {}", frame.delay);
-    println!("  Disposal Method: {:?}", frame.dispose);
-    println!("  Interlaced     : {}", frame.interlaced);
-    println!("  Need User Input: {}", frame.needs_user_input);
+    println!("[Frame #{}]", i);
+    println!("  Base Point       : ({},{})", frame.left, frame.top);
+    println!("  Size             : {}×{} pixel", frame.width, frame.height);
+    println!("  Delay            : {}", frame.delay);
+    println!("  Disposal Method  : {} ({:?})", frame.dispose as i32, frame.dispose);
+    println!("  Interlaced       : {}", frame.interlaced);
+    println!("  Need User Input  : {}", frame.needs_user_input);
+    i += 1;
   }
   Ok(())
 }
