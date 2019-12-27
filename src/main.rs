@@ -10,16 +10,16 @@ use gif::SetParameter;
 
 fn main() {
   let matches = App::new("fylm")
-      .version("0.1.0")
-      .author("TAKAMI Torao <koiroha@gmail.com>")
-      .about("film maker")
-      .arg(Arg::with_name("inspect")
-          .short("i")
-          .long("inspect")
-          .value_name("FILE")
-          .help("Inspect specified GIF file.")
-          .takes_value(true))
-      .get_matches();
+    .version("0.1.0")
+    .author("TAKAMI Torao <koiroha@gmail.com>")
+    .about("film maker")
+    .arg(Arg::with_name("inspect")
+      .short("i")
+      .long("inspect")
+      .value_name("FILE")
+      .help("Inspect specified GIF file.")
+      .takes_value(true))
+    .get_matches();
 
   match matches.value_of("inspect") {
     Some(file) => {
@@ -33,6 +33,14 @@ fn main() {
   println!("args: {:?}", args);
 }
 
+fn rgb(r: u8, g: u8, b: u8) -> String {
+  format!("#{:02X}{:02X}{:02X}", r, g, b)
+}
+
+fn argb(a: u8, r: u8, g: u8, b: u8) -> String {
+  format!("#{:02X}{:02X}{:02X}{:02X}", a, r, g, b)
+}
+
 fn inspect(file_name: String) -> Result<(), io::Error> {
   let file = File::open(file_name)?;
 
@@ -40,32 +48,42 @@ fn inspect(file_name: String) -> Result<(), io::Error> {
   decoder.set(gif::ColorOutput::RGBA);
 
   let mut decoder = decoder.read_info().unwrap();
-  println!("Logical Screen Size: {}x{} pixel", decoder.width(), decoder.height());
+  println!("Logical Screen Size      : {}x{} pixel", decoder.width(), decoder.height());
+  print!("Global Color Table       : ");
   match decoder.global_palette() {
     Some(palette) => {
-      print!("Global Color Table : [");
-      for i in 0..palette.len()/3-1 {
+      print!("[");
+      for i in 0..(palette.len() / 3) {
         if i != 0 {
           print!(",");
         }
-        print!("#{:02X}{:02X}{:02X}", palette[i], palette[i+1], palette[i+2]);
+        print!("{}", rgb(palette[i * 3], palette[i * 3 + 1], palette[i * 3 + 2]));
       }
-      println!("] ({} bytes)", palette.len());
+      println!("] ({} bytes, {} colors)", palette.len(), palette.len() / 3);
     }
-    None => ()
+    None => println!("-")
   }
-  println!("Background Color   : {}", decoder.bg_color().map_or("---".to_string(), |x| x.to_string()));
+  println!("Background Color Index   : {}",
+           decoder.bg_color().map_or("-".to_string(), |x| x.to_string()));
 
   let mut i = 0;
   while let Some(frame) = decoder.read_next_frame().unwrap() {
-    println!("[Frame #{}]", i);
-    println!("  Base Point       : ({},{})", frame.left, frame.top);
-    println!("  Size             : {}×{} pixel", frame.width, frame.height);
-    println!("  Delay            : {}", frame.delay);
-    println!("  Disposal Method  : {} ({:?})", frame.dispose as i32, frame.dispose);
-    println!("  Interlaced       : {}", frame.interlaced);
-    println!("  Need User Input  : {}", frame.needs_user_input);
-    i += 1;
+    println!("  Image Position         : ({},{})", frame.left, frame.top);
+    println!("  Image Size             : {}×{} pixel", frame.width, frame.height);
+    println!("  Interlaced             : {}", frame.interlaced);
+    println!("  Delay Time             : {}", frame.delay);
+    println!("  Disposal Method        : {} ({:?})", frame.dispose as u8, frame.dispose);
+    println!("  Transparent Color Index: {}",
+             frame.transparent.map_or("-".to_string(), |x| x.to_string()));
+    println!("  Need User Input        : {}", frame.needs_user_input);
+    print!("  Image Data             : ");
+    for i in 0..(frame.buffer.len() / 4) {
+      if i != 0 {
+        print!(",");
+      }
+      print!("{}", argb(frame.buffer[(i * 4) + 3], frame.buffer[(i * 4)], frame.buffer[(i * 4) + 1], frame.buffer[(i * 4) + 2]));
+    }
+    println!(" ({} bytes, {} pixels)", frame.buffer.len(), frame.buffer.len() / 4);
   }
   Ok(())
 }
