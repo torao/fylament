@@ -41,6 +41,7 @@ fn argb(a: u8, r: u8, g: u8, b: u8) -> String {
   format!("#{:02X}{:02X}{:02X}{:02X}", a, r, g, b)
 }
 
+/// Output inspection to standard out.
 fn inspect(file_name: String) -> Result<(), io::Error> {
   let file = File::open(file_name)?;
 
