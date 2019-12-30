@@ -10,16 +10,16 @@ use gif::SetParameter;
 
 fn main() {
   let matches = App::new("fylm")
-    .version("0.1.0")
-    .author("TAKAMI Torao <koiroha@gmail.com>")
-    .about("film maker")
-    .arg(Arg::with_name("inspect")
-      .short("i")
-      .long("inspect")
-      .value_name("FILE")
-      .help("Inspect specified GIF file.")
-      .takes_value(true))
-    .get_matches();
+      .version("0.1.0")
+      .author("TAKAMI Torao <koiroha@gmail.com>")
+      .about("film maker")
+      .arg(Arg::with_name("inspect")
+          .short("i")
+          .long("inspect")
+          .value_name("FILE")
+          .help("Inspect specified GIF file.")
+          .takes_value(true))
+      .get_matches();
 
   match matches.value_of("inspect") {
     Some(file) => {
@@ -33,19 +33,19 @@ fn main() {
   println!("args: {:?}", args);
 }
 
-fn rgb(r: u8, g: u8, b: u8) -> String {
-  format!("#{:02X}{:02X}{:02X}", r, g, b)
-}
-
-fn argb(a: u8, r: u8, g: u8, b: u8) -> String {
-  format!("#{:02X}{:02X}{:02X}{:02X}", a, r, g, b)
-}
-
 fn inspect(file_name: String) -> Result<(), io::Error> {
   let file = File::open(file_name)?;
 
   let mut decoder = gif::Decoder::new(file);
   decoder.set(gif::ColorOutput::RGBA);
+
+  fn rgb(r: u8, g: u8, b: u8) -> String {
+    format!("#{:02X}{:02X}{:02X}", r, g, b)
+  }
+
+  fn argb(a: u8, r: u8, g: u8, b: u8) -> String {
+    format!("#{:02X}{:02X}{:02X}{:02X}", a, r, g, b)
+  }
 
   let mut decoder = decoder.read_info().unwrap();
   println!("Logical Screen Size      : {}x{} pixel", decoder.width(), decoder.height());
@@ -68,6 +68,8 @@ fn inspect(file_name: String) -> Result<(), io::Error> {
 
   let mut i = 0;
   while let Some(frame) = decoder.read_next_frame().unwrap() {
+    i += 1;
+    println!("[#{}]", i);
     println!("  Image Position         : ({},{})", frame.left, frame.top);
     println!("  Image Size             : {}×{} pixel", frame.width, frame.height);
     println!("  Interlaced             : {}", frame.interlaced);
