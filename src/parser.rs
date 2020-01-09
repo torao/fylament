@@ -1,50 +1,53 @@
-// #[macro_use]
 extern crate nom;
 
-use nom::{
-  complete::tag,
-  do_parse,
-  IResult,
-  named,
-  whitespace,
-};
+use nom::branch::alt;
+use nom::branch::permutation;
+use nom::bytes::complete::escaped_transform;
+use nom::bytes::complete::tag;
+use nom::character::complete::multispace0;
+use nom::combinator::map;
+use nom::combinator::not;
+use nom::IResult;
+use nom::sequence::delimited;
 
-use self::nom::sequence::delimited;
-use self::nom::multi::separated_list;
-use self::nom::character::complete::char;
+use self::nom::bytes::complete::take_while_m_n;
+use self::nom::character::is_hex_digit;
+use self::nom::combinator::{map_res, value};
+use self::nom::multi::count;
 
-fn string(i: &str) -> IResult<&str, &str> {
-  delimited(
-    char('\"'),
-    parse_str,
-    char('\"'),
-  )(i)
+fn parser(s: &str) -> IResult<&str, &str> {
+  permutation((
+    multispace0,
+    tag("Image"),
+    multispace0,
+    char('.'),
+    multispace0,
+    tag("transform"),
+    multispace0,
+    char('('),
+    multispace0,
+    char(')'),
+    multispace0,
+    char('{'),
+  ))(s)
 }
 
-fn array(i:&str) -> IResult<&str, Vec<&str>> {
+fn string(s: &str) -> IResult<&str, &str> {
   delimited(
-    char('['),
-    separated_list(char(','), parse_string),
-    char(']'),
-  )(i)
-}
-
-named!(name_parser<(&str,&str,&str)>, do_parse!(
-  space? >> tag!("Image") >> space? >> tag!(".") >> space? >> tag!("transform") >> tag!("(") >> space? >>
-  duration: map_res!(
-    |ch| -> ch.is_alphanumeric(),
-    from_utf8
-  ) >> space? >> tag!(")") >> space? >> tag!("{") >> space? >>
-  local_params: map_res!(
-    is_identifier,
-    from_utf8
-  ) >> space? >> tag!("=>") >> space? >> tag!("uri") >> space? >> tag!(":") >> space? >> tag!("[") >> space? >>
-  urls: map_res!(
-    |ch| ch != ']',
-    from_utf8
-  ) >> space? >> tag!("]") >> space? >> tag!("}") >> space?
-));
-
-pub fn parse(files: Vec<String>) -> u32 {
-  10
+    char('\"'),
+    escaped_transform(not(char('\"')), '\\', alt((
+      value(char('b'), "\x08"),
+      value(char('t'), "\x09"),
+      value(char('n'), "\x0a"),
+      value(char('f'), "\x0c"),
+      value(char('r'), "\x0d"),
+      value(char('\"'), "\""),
+      value(char('\''), "\'"),
+      value(char('\\'), "\\"),
+      map_res(
+        permutation((char('u'), take_while_m_n(4, 4, is_hex_digit))),
+        |(_, code)| code.parse::<char>(16)),
+    ))),
+    char('\"'),
+  )(s)
 }
