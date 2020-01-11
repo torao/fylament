@@ -1,5 +1,6 @@
 extern crate nom;
 
+use failure::_core::char::{decode_utf16, REPLACEMENT_CHARACTER};
 use nom::branch::{alt, permutation};
 use nom::bytes::complete::{escaped_transform, tag, take_while_m_n};
 use nom::character::complete::{char, multispace0};
@@ -10,10 +11,10 @@ use nom::multi::count;
 use nom::sequence::delimited;
 
 use self::nom::bytes::complete::take_while_m_n;
+use self::nom::character::complete::hex_digit1;
 use self::nom::character::is_hex_digit;
-use self::nom::combinator::{map_res, value};
+use self::nom::combinator::{map_res, opt, value};
 use self::nom::multi::count;
-use failure::_core::char::{decode_utf16, REPLACEMENT_CHARACTER};
 
 #[derive(Debug, Fail)]
 pub enum ParseError {
@@ -40,7 +41,16 @@ fn parser(s: &str) -> IResult<&str, &str> {
   ))(s)
 }
 
-fn string(s: &str) -> IResult<&str, String> {
+/// Parse string literal that is surrounded by `"` and is able to contain escape sequence.
+///
+/// | Escape Sequence | Description |
+/// |+-----|+-----------------------|
+/// | `\b` | backspace |
+/// | `\t` | horizontal tab |
+/// | `\f` | vertical tab |
+/// | `\n` | line feed |
+/// | `\r` | carriage return |
+fn string_literal(s: &str) -> IResult<&str, String> {
   delimited(
     char('\"'),
     escaped_transform(not(char('\"')), '\\', alt((
@@ -52,13 +62,19 @@ fn string(s: &str) -> IResult<&str, String> {
       value('\"', char('\"')),
       value('\'', char('\'')),
       value('\\', char('\\')),
-      map_res(
-        permutation((char('u'), take_while_m_n(4, 4, |c| c.is_ascii_hexdigit()))),
-        |(_, code)| {
-          decode_utf16(vec![u16::from_str_radix(code, 16).unwrap()])
-            .nth(0).unwrap().unwrap_or(REPLACEMENT_CHARACTER)
-        },
-      )))),
+      map_res(permutation((char('u'), unicode_character_literal)), |(_, r)| r)
+    ))),
     char('\"'),
+  )(s)
+}
+
+/// Parse `{XXXXXXXX}` string sequence and return it as Unicode character. In case it's not defined
+/// as Unicode, replace to U+FFFD REPLACEMENT CHARACTER instead.
+fn unicode_character_literal(s: &str) -> IResult<&str, char> {
+  map_res(
+    delimited(char('{'), hex_digit1, char('}')),
+    |hex| {
+      std::char::from_u32(u32::from_str(hex).unwrap()).unwrap_or(REPLACEMENT_CHARACTER)
+    },
   )(s)
 }
