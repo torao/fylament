@@ -14,6 +14,7 @@ use self::nom::bytes::complete::take_while_m_n;
 use self::nom::character::is_hex_digit;
 use self::nom::combinator::{map_res, value};
 use self::nom::multi::count;
+use failure::_core::char::{decode_utf16, REPLACEMENT_CHARACTER};
 
 fn parser(s: &str) -> IResult<&str, &str> {
   permutation((
@@ -32,22 +33,25 @@ fn parser(s: &str) -> IResult<&str, &str> {
   ))(s)
 }
 
-fn string(s: &str) -> IResult<&str, &str> {
+fn string(s: &str) -> IResult<&str, String> {
   delimited(
     char('\"'),
     escaped_transform(not(char('\"')), '\\', alt((
-      value(char('b'), "\x08"),
-      value(char('t'), "\x09"),
-      value(char('n'), "\x0a"),
-      value(char('f'), "\x0c"),
-      value(char('r'), "\x0d"),
-      value(char('\"'), "\""),
-      value(char('\''), "\'"),
-      value(char('\\'), "\\"),
+      value('\x08', char('b')),
+      value('\x09', char('t')),
+      value('\x0a', char('n')),
+      value('\x0c', char('f')),
+      value('\x0d', char('r')),
+      value('\"', char('\"')),
+      value('\'', char('\'')),
+      value('\\', char('\\')),
       map_res(
-        permutation((char('u'), take_while_m_n(4, 4, is_hex_digit))),
-        |(_, code)| code.parse::<char>(16)),
-    ))),
+        permutation((char('u'), take_while_m_n(4, 4, |c| c.is_ascii_hexdigit()))),
+        |(_, code)| {
+          decode_utf16(vec![u16::from_str_radix(code, 16).unwrap()])
+            .nth(0).unwrap().unwrap_or(REPLACEMENT_CHARACTER)
+        },
+      )))),
     char('\"'),
   )(s)
 }
