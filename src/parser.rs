@@ -1,13 +1,12 @@
 extern crate nom;
 
-use nom::branch::alt;
-use nom::branch::permutation;
-use nom::bytes::complete::escaped_transform;
-use nom::bytes::complete::tag;
-use nom::character::complete::multispace0;
-use nom::combinator::map;
-use nom::combinator::not;
+use nom::branch::{alt, permutation};
+use nom::bytes::complete::{escaped_transform, tag, take_while_m_n};
+use nom::character::complete::{char, multispace0};
+use nom::character::is_hex_digit;
+use nom::combinator::{map, map_res, not, value};
 use nom::IResult;
+use nom::multi::count;
 use nom::sequence::delimited;
 
 use self::nom::bytes::complete::take_while_m_n;
@@ -15,6 +14,14 @@ use self::nom::character::is_hex_digit;
 use self::nom::combinator::{map_res, value};
 use self::nom::multi::count;
 use failure::_core::char::{decode_utf16, REPLACEMENT_CHARACTER};
+
+#[derive(Debug, Fail)]
+pub enum ParseError {
+  #[fail(display = "i/o error: {}", description)]
+  StringLiteralError {
+    description: String
+  }
+}
 
 fn parser(s: &str) -> IResult<&str, &str> {
   permutation((
