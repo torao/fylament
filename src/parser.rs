@@ -50,6 +50,11 @@ fn parser(s: &str) -> IResult<&str, &str> {
 /// | `\f` | vertical tab |
 /// | `\n` | line feed |
 /// | `\r` | carriage return |
+/// | `\"` | double quote |
+/// | `\'` | single quote |
+/// | `\\` | slash |
+/// | `\u{XXXXXXXX}` | unicode character |
+///
 fn string_literal(s: &str) -> IResult<&str, String> {
   delimited(
     char('\"'),
