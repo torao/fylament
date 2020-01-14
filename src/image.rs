@@ -90,6 +90,26 @@ pub trait Screen {
   fn raster_image(&self) -> *const RasterImage;
 }
 
+/// The Size represents a 2-dimensional rectangle size.
+#[derive(Debug)]
+pub struct Size {
+  width: u32,
+  height: u32,
+}
+
+/// 2-dimensional ARGB bitmap image.
+#[derive(Debug)]
+pub struct RasterImage {
+  size: Size,
+  raster: Vec<Vec<u32>>,
+}
+
+/*
+pub trait Screen {
+  fn size(&self) -> Dimension2D;
+  fn raster_image(&self) -> *const RasterImage;
+}
+
 #[derive(Debug)]
 pub struct Story {}
 
