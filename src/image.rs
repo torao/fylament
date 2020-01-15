@@ -104,7 +104,6 @@ pub struct RasterImage {
   raster: Vec<Vec<u32>>,
 }
 
-/*
 pub trait Screen {
   fn size(&self) -> Dimension2D;
   fn raster_image(&self) -> *const RasterImage;

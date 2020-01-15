@@ -1,30 +1,21 @@
 extern crate nom;
 
-use failure::_core::char::{decode_utf16, REPLACEMENT_CHARACTER};
+use failure::_core::char::{REPLACEMENT_CHARACTER};
 use nom::branch::{alt, permutation};
-use nom::bytes::complete::{escaped_transform, tag, take_while_m_n};
-use nom::character::complete::{char, multispace0};
-use nom::character::is_hex_digit;
-use nom::combinator::{map, map_res, not, value};
+use nom::bytes::complete::{escaped_transform, tag};
+use nom::character::complete::{char, multispace0, hex_digit1};
+use nom::combinator::{map_res, not, value};
 use nom::IResult;
-use nom::multi::count;
 use nom::sequence::delimited;
 
-use self::nom::bytes::complete::take_while_m_n;
-use self::nom::character::complete::hex_digit1;
-use self::nom::character::is_hex_digit;
-use self::nom::combinator::{map_res, opt, value};
-use self::nom::multi::count;
-
-#[derive(Debug, Fail)]
+#[derive(Debug)]
 pub enum ParseError {
-  #[fail(display = "i/o error: {}", description)]
   StringLiteralError {
     description: String
   }
 }
 
-fn parser(s: &str) -> IResult<&str, &str> {
+pub fn parser(s: &str) -> IResult<&str, &str> {
   permutation((
     multispace0,
     tag("Image"),

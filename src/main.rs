@@ -1,36 +1,59 @@
 extern crate clap;
 extern crate gif;
+extern crate fylm;
 
 use std::env;
-use std::fs::File;
+use std::fs::{File, read_to_string};
 use std::io;
 
 use clap::{App, Arg, SubCommand};
 use gif::SetParameter;
+use fylm::parser::{parser, ParseError};
 
 fn main() {
   let matches = App::new("fylm")
-      .version("0.1.0")
-      .author("TAKAMI Torao <koiroha@gmail.com>")
-      .about("film maker")
-      .arg(Arg::with_name("inspect")
-          .short("i")
-          .long("inspect")
-          .value_name("FILE")
-          .help("Inspect specified GIF file.")
-          .takes_value(true))
-      .get_matches();
+    .version("0.1.0")
+    .author("TAKAMI Torao <koiroha@gmail.com>")
+    .about("fylm maker")
+    .subcommand(SubCommand::with_name("inspect")
+      .about("Inspect the specified GIF file.")
+      .arg(Arg::with_name("gif_file")
+        .value_name("FILE")
+        .help("A GIF file in which to display properties.")
+        .takes_value(true)
+      )
+    )
+    .subcommand(SubCommand::with_name("build")
+      .about("Build animation from the specified fylm file.")
+      .arg(Arg::with_name("fylm_file")
+        .value_name("FILE")
+        .help("")
+        .takes_value(true)
+      )
+    )
+    .get_matches();
 
-  match matches.value_of("inspect") {
-    Some(file) => {
-      inspect(file.to_string()).unwrap();
-      return;
-    }
-    None => ()
+  match matches.subcommand() {
+    ("inspect", Some(args)) =>
+      match args.value_of("gif_file") {
+        Some(file) => {
+          inspect(file.to_string()).unwrap();
+          return;
+        }
+        None => ()
+      },
+    ("build", Some(args)) => {}
+    (unknown, _) => ()
   }
 
   let args: Vec<String> = env::args().collect();
   println!("args: {:?}", args);
+}
+
+fn build(file_name: String) -> Result<(), ParseError> {
+  let content = read_to_string(file_name)?;
+  parser(&content);
+  Ok(())
 }
 
 fn inspect(file_name: String) -> Result<(), io::Error> {
