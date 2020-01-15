@@ -1,21 +1,23 @@
 extern crate nom;
 
-use failure::_core::char::{REPLACEMENT_CHARACTER};
+use failure::_core::char::{ REPLACEMENT_CHARACTER};
 use nom::branch::{alt, permutation};
 use nom::bytes::complete::{escaped_transform, tag};
-use nom::character::complete::{char, multispace0, hex_digit1};
-use nom::combinator::{map_res, not, value};
+use nom::character::complete::{char, hex_digit1, line_ending, multispace0, none_of, not_line_ending};
+use nom::combinator::{map, not, value};
 use nom::IResult;
 use nom::sequence::delimited;
+use self::nom::bytes::complete::take_until;
 
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum ParseError {
+  #[fail(display = "i/o error: {}", description)]
   StringLiteralError {
     description: String
   }
 }
 
-pub fn parser(s: &str) -> IResult<&str, &str> {
+fn parser(s: &str) -> IResult<&str, &str> {
   permutation((
     multispace0,
     tag("Image"),
@@ -29,6 +31,8 @@ pub fn parser(s: &str) -> IResult<&str, &str> {
     char(')'),
     multispace0,
     char('{'),
+    char('}'),
+    multispace0,
   ))(s)
 }
 
@@ -49,7 +53,7 @@ pub fn parser(s: &str) -> IResult<&str, &str> {
 fn string_literal(s: &str) -> IResult<&str, String> {
   delimited(
     char('\"'),
-    escaped_transform(not(char('\"')), '\\', alt((
+    escaped_transform(none_of("\"\r\n"), '\\', alt((
       value('\x08', char('b')),
       value('\x09', char('t')),
       value('\x0a', char('n')),
@@ -58,7 +62,7 @@ fn string_literal(s: &str) -> IResult<&str, String> {
       value('\"', char('\"')),
       value('\'', char('\'')),
       value('\\', char('\\')),
-      map_res(permutation((char('u'), unicode_character_literal)), |(_, r)| r)
+      map(permutation((char('u'), unicode_character_literal)), |(_, r)| r)
     ))),
     char('\"'),
   )(s)
@@ -67,10 +71,25 @@ fn string_literal(s: &str) -> IResult<&str, String> {
 /// Parse `{XXXXXXXX}` string sequence and return it as Unicode character. In case it's not defined
 /// as Unicode, replace to U+FFFD REPLACEMENT CHARACTER instead.
 fn unicode_character_literal(s: &str) -> IResult<&str, char> {
-  map_res(
+  map(
     delimited(char('{'), hex_digit1, char('}')),
     |hex| {
-      std::char::from_u32(u32::from_str(hex).unwrap()).unwrap_or(REPLACEMENT_CHARACTER)
+      std::char::from_u32(u32::from_str_radix(hex, 16).unwrap()).unwrap_or(REPLACEMENT_CHARACTER)
     },
   )(s)
+}
+
+/// Comment that is constructed with line or block comment.
+fn comment(s: &str) -> IResult<&str, &str> {
+  alt((line_comment, block_comment))(s)
+}
+
+/// Line comment.
+fn line_comment(s: &str) -> IResult<&str, &str> {
+  delimited(tag("//"), not_line_ending, line_ending)(s)
+}
+
+/// Block comment.
+fn block_comment(s: &str) -> IResult<&str, &str> {
+  delimited(tag("/*"), take_until("*/"), tag("*/"))(s)
 }

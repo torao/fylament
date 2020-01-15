@@ -15,6 +15,10 @@ pub enum FylmError {
   GIFError {
     description: String
   },
+  #[fail(display = "parse error: {}", description)]
+  ParseError {
+    description: String
+  }
 }
 
 impl From<IOError> for FylmError {
