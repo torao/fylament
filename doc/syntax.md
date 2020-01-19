@@ -67,3 +67,13 @@ Image.transform(1000msec) { t =>
 ### Literal
 
 > `LITERAL` := `STRING_LITERAL` | `NUMERIC_LITERAL`
+
+#### String Literal
+
+> `STRING_LITERAL` := `'"'` (`STRING_LITERAL_CHAR` | ESCAPE_SEQUENCE`)* `'"'`
+> `STRING_LITERAL_CHAR` := *Unicode excludes control code and "*
+
+##### Escape Sequence
+
+> `ESCAPE_SEQUENCE` := `"\r"` | `"\n"` | `"\t"` | 
+
