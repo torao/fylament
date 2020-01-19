@@ -39,7 +39,7 @@ Image.transform(1000msec) { t =>
 
 > `X`{N} := `X`<sub>1</sub> `X`<sub>2</sub> ... `X`<sub>N</sub>
 
-ブレースで囲われた数字 {M,N} は M 個以上 N 個以下の繰り返し繰り返しを示す。
+ブレースで囲われた 2 つの数字 {M,N} は M 個以上 N 個以下の繰り返し繰り返しを示す。
 
 > `X`{M,N} := `X`<sub>1</sub> `X`<sub>2</sub> ... `X`<sub>n</sub>  (M≦n≦N)
 
@@ -49,11 +49,20 @@ Image.transform(1000msec) { t =>
 
 > `CHAR` := U+0000 - U+FFFF
 
-#### End of Line
+##### Digit
+
+> `DIGIT` := `"0"` | `"1"` | `"2"` | `"3"` | `"4"` | `"5"` | `"6"` | `"7"` | `"8"` | `"9"` 
+
+##### End of Line
 
 改行または行末を示す `EOL` は単独の LF (U+000A), CR (U+000D) またはそれらのシーケンス CR LF によって示される。
 
 > `EOL` := `CR` | `LF` | `CR LF`
+
+#### Identifier
+
+> `IDENTIFIER` := `LETTER_EXCEPT_FOR_DIGIT` `LETTER`*<br/>
+> `LETTER_EXCEPT_FOR_DIGIT` := `LETTER` ^ `DIGIT`<br/>
 
 ### Comment
 
@@ -66,4 +75,19 @@ Image.transform(1000msec) { t =>
 
 ### Literal
 
-> `LITERAL` := `STRING_LITERAL` | `NUMERIC_LITERAL`
+> `LITERAL` := `STRING_LITERAL` | `NUMERIC_LITERAL` | `LIST_LITERAL` | `OBJECT_LITERAL`
+
+#### List Literal
+
+リストリテラルは要素を内包するリストを記述するための表記方法。最後の要素の後ろにコンマを配置することができる。
+
+> `LIST_LITERAL` := `"["` `COMMA_SEPARATED_ELEMENTS` ","? `"]"`<br/>
+> `COMMA_SEPARATED_ELEMENTS` := `ELEMENT` | `COMMA_SEPARATED_ELEMENTS` "," `ELEMENT`
+
+#### Object Literal
+
+オブジェクトリテラルはフィールドを持つ構造体を記述するための表記方法。最後のフィールドの後ろにコンマを配置することができる。
+
+> `OBJECT_LITERAL` := "{" `COMMA_SEPARATED_FIELDS` ","? "}"<br/>
+> `COMMA_SEPARATED_FIELDS` := `FIELD` | `COMMA_SEPARATED_FIELDS` "," `FIELD`<br/>
+> `FIELD` := `IDENTIFIER` ":" `EXPRESSION`
