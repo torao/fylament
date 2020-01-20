@@ -1,6 +1,6 @@
 extern crate clap;
-extern crate gif;
 extern crate fylm;
+extern crate gif;
 
 use std::env;
 use std::fs::{File, read_to_string};
@@ -8,7 +8,8 @@ use std::io;
 
 use clap::{App, Arg, SubCommand};
 use gif::SetParameter;
-use fylm::parser::{parser, ParseError};
+
+use fylm::parser::{ParseError, parser};
 
 fn main() {
   let matches = App::new("fylm")
@@ -50,10 +51,11 @@ fn main() {
   println!("args: {:?}", args);
 }
 
-fn build(file_name: String) -> Result<(), ParseError> {
-  let content = read_to_string(file_name)?;
-  parser(&content);
-  Ok(())
+/// Build a movie or animation file from the specified file.
+fn build(file_name: String) -> Result<&str, ParseError> {
+  read_to_string(file_name)
+    .map_err(|_| ParseError::IOError { description: file_name })
+    .map(|content| parser(&content))
 }
 
 fn inspect(file_name: String) -> Result<(), io::Error> {
