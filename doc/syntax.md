@@ -54,7 +54,7 @@ Image.transform(1000msec) { t =>
 > `WHITE_SPACE` := `SP` | `TAB` | `FF` | `EOL`
 
 | Notation | Description    | Unicode |
-|+---------|+---------------|+--------|
+|:---------|:---------------|:--------|
 | `SP`     | space          | \u0020  |
 | `TAB`    | horizontal tab | \u0009  |
 | `FF`     | form feed      | \u000C  |
@@ -122,7 +122,7 @@ Image.transform(1000msec) { t =>
 > `ESCAPE_SEQUENCE` := *Nottion of the following table* | `UNICODE_ESCAPE`
 
 | Notation | Character       | Unicode  |
-|+---------|+----------------|+---------|
+|:---------|:----------------|:---------|
 | `"\t"`   | horizontal tab  | `\u0009` |
 | `"\n"`   | linefeed        | `\u000a` |
 | `"\r"`   | carriage return | `\u000d` |
