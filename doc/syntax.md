@@ -23,9 +23,49 @@ Image.transform(1000msec) { t =>
 }.loop()
 ```
 
-### Basic Notation
+## Character Notation
 
-#### Repeat Notation
+`CHAR` は Unicode で定義されているすべての文字を示す。ただし、定義されているかは策定によって変わるため、Unicode 範囲内のすべての値を示す。
+
+> `CHAR` := U+0000 - U+FFFF
+
+### White Space and Line Terminator
+
+> `WHITE_SPACE` := `SP` | `TAB` | `FF` | `EOL`
+
+| Notation | Description    | Unicode |
+|:---------|:---------------|:--------|
+| `SP`     | space          | \u0020  |
+| `TAB`    | horizontal tab | \u0009  |
+| `FF`     | form feed      | \u000C  |
+
+
+改行または行末を示す `EOL` は単独の LF (U+000A), CR (U+000D) またはシーケンス CR LF によって示される。
+
+> `EOL` := `CR` | `LF` | `CR LF`
+
+### Digit
+
+10進数の数字は 0 から 9 の文字で示される。
+
+> `NON_ZERO_DIGIT` := `"1"` | `"2"` | `"3"` | `"4"` | `"5"` | `"6"` | `"7"` | `"8"` | `"9"`<br/>
+> `DIGIT` := `"0"` | `NON_ZERO_DIGIT`
+
+16 進数の数字は 0 から F の文字で示される。
+
+> `HEX_DIGIT` := `DIGIT` | `"a"` | `"b"` | `"c"` | `"d"` | `"e"` | `"f"` | `"A"` | `"B"` | `"C"` | `"D"` | `"E"` | `"F"`
+
+2 進数の数字は 0 か　1 のいずれかである。
+
+> `BINARY_DIGIT` := `"0"` | `"1"`
+
+いくつかの言語で使用されている 8 進数表記はこのプログラムでは扱わない。
+
+### Letter
+
+> `LETTER` := *Unicode character that is defined as Letter*
+
+## Repeat Notation
 
 アスタリスク記号 * は直前の要素の 0 個以上の繰り返しを示す。
 
@@ -43,48 +83,6 @@ Image.transform(1000msec) { t =>
 
 > `X`{M,N} := `X`<sub>1</sub> `X`<sub>2</sub> ... `X`<sub>n</sub>  (M≦n≦N)
 
-#### Character Notation
-
-`CHAR` は Unicode で定義されているすべての文字を示す。ただし、定義されているかは策定によって変わるため、Unicode 範囲内のすべての値を示す。
-
-> `CHAR` := U+0000 - U+FFFF
-
-##### White Space and Line Terminator
-
-> `WHITE_SPACE` := `SP` | `TAB` | `FF` | `EOL`
-
-| Notation | Description    | Unicode |
-|:---------|:---------------|:--------|
-| `SP`     | space          | \u0020  |
-| `TAB`    | horizontal tab | \u0009  |
-| `FF`     | form feed      | \u000C  |
-
-
-改行または行末を示す `EOL` は単独の LF (U+000A), CR (U+000D) またはシーケンス CR LF によって示される。
-
-> `EOL` := `CR` | `LF` | `CR LF`
-
-##### Digit
-
-10進数の数字は 0 から 9 の文字で示される。
-
-> `NON_ZERO_DIGIT` := `"1"` | `"2"` | `"3"` | `"4"` | `"5"` | `"6"` | `"7"` | `"8"` | `"9"`<br/>
-> `DIGIT` := `"0"` | `NON_ZERO_DIGIT`
-
-16 進数の数字は 0 から F の文字で示される。
-
-> `HEX_DIGIT` := `DIGIT` | `"a"` | `"b"` | `"c"` | `"d"` | `"e"` | `"f"` | `"A"` | `"B"` | `"C"` | `"D"` | `"E"` | `"F"`
-
-2 進数の数字は 0 か　1 のいずれかである。
-
-> `BINARY_DIGIT` := "0" | "1"
-
-いくつかの言語で使用されている 8 進数表記はこのプログラムでは扱わない。
-
-#### Letter
-
-> `LETTER` := *Unicode character that is defined as Letter*
-
 ### Comment
 
 コメントは `// commet` 形式の行コメントと `/* comment */` 形式のブロックコメントの 2 種類が存在する。構文中の `"//"` から行末までは
@@ -96,7 +94,7 @@ Image.transform(1000msec) { t =>
 
 ### Literal
 
-> `LITERAL` := `BOOLEAN_LITERAL` | " `STRING_LITERAL` | `NUMERIC_LITERAL` | `LIST_LITERAL` | `OBJECT_LITERAL`
+> `LITERAL` := `BOOLEAN_LITERAL` | `STRING_LITERAL` | `NUMERIC_LITERAL` | `LIST_LITERAL` | `OBJECT_LITERAL`
 
 #### Boolean Literal
 
@@ -118,7 +116,7 @@ Image.transform(1000msec) { t =>
 #### String Literal
 
 > `STRING_LITERAL` := `'"'` `STRING_CHARACTER`* `'"'`<br/>
-> `STRING_CHARACTER` := (`CHAR` ^ ('"' | "\")) | `ESCAPE_SEQUENCE`<br/>
+> `STRING_CHARACTER` := (`CHAR` ^ (`'"'` | `"\"`)) | `ESCAPE_SEQUENCE`<br/>
 > `ESCAPE_SEQUENCE` := *Nottion of the following table* | `UNICODE_ESCAPE`
 
 | Notation | Character       | Unicode  |
