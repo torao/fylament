@@ -8,6 +8,7 @@ use nom::combinator::{map, not, value};
 use nom::IResult;
 use nom::sequence::delimited;
 use self::nom::bytes::complete::take_until;
+use self::nom::number::complete::recognize_float;
 
 #[derive(Debug, Fail)]
 pub enum ParseError {
@@ -79,7 +80,11 @@ fn unicode_character_literal(s: &str) -> IResult<&str, char> {
   )(s)
 }
 
-/// Comment that is constructed with line or block comment.
+fn numeric_literal(s:&str) -> IResult<&str,f64> {
+  recognize_float(s)
+}
+
+/// Either a line comment or block comment.
 fn comment(s: &str) -> IResult<&str, &str> {
   alt((line_comment, block_comment))(s)
 }
