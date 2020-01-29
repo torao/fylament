@@ -117,7 +117,7 @@ Image.transform(1000msec) { t =>
 
 > `STRING_LITERAL` := `'"'` `STRING_CHARACTER`* `'"'`<br/>
 > `STRING_CHARACTER` := (`CHAR` ^ (`'"'` | `"\"`)) | `ESCAPE_SEQUENCE`<br/>
-> `ESCAPE_SEQUENCE` := *Nottion of the following table* | `UNICODE_ESCAPE`
+> `ESCAPE_SEQUENCE` := *Notion of the following table* | `UNICODE_ESCAPE`
 
 | Notation | Character       | Unicode  |
 |:---------|:----------------|:---------|

@@ -9,30 +9,30 @@ use std::io;
 use clap::{App, Arg, SubCommand};
 use gif::SetParameter;
 
-use fylm::parser::{ParseError, parser};
+use fylm::model::parser::{ParseError, parser};
 
 fn main() {
   let matches = App::new("fylm")
-    .version("0.1.0")
-    .author("TAKAMI Torao <koiroha@gmail.com>")
-    .about("fylm maker")
-    .subcommand(SubCommand::with_name("inspect")
-      .about("Inspect the specified GIF file.")
-      .arg(Arg::with_name("gif_file")
-        .value_name("FILE")
-        .help("A GIF file in which to display properties.")
-        .takes_value(true)
+      .version("0.1.0")
+      .author("TAKAMI Torao <koiroha@gmail.com>")
+      .about("Program for creating motion animation of 2D objects")
+      .subcommand(SubCommand::with_name("inspect")
+          .about("Inspect the specified GIF file.")
+          .arg(Arg::with_name("gif_file")
+              .value_name("FILE")
+              .help("A GIF file in which to display properties.")
+              .takes_value(true)
+          )
       )
-    )
-    .subcommand(SubCommand::with_name("build")
-      .about("Build animation from the specified fylm file.")
-      .arg(Arg::with_name("fylm_file")
-        .value_name("FILE")
-        .help("")
-        .takes_value(true)
+      .subcommand(SubCommand::with_name("build")
+          .about("Build animation from the specified fylm file.")
+          .arg(Arg::with_name("fylm_file")
+              .value_name("FILE")
+              .help("")
+              .takes_value(true)
+          )
       )
-    )
-    .get_matches();
+      .get_matches();
 
   match matches.subcommand() {
     ("inspect", Some(args)) =>
@@ -54,8 +54,8 @@ fn main() {
 /// Build a movie or animation file from the specified file.
 fn build(file_name: String) -> Result<&str, ParseError> {
   read_to_string(file_name)
-    .map_err(|_| ParseError::IOError { description: file_name })
-    .map(|content| parser(&content))
+      .map_err(|_| ParseError::IOError { description: file_name })
+      .and_then(|content| parser(&content))
 }
 
 fn inspect(file_name: String) -> Result<(), io::Error> {
